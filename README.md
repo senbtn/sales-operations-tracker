@@ -1,5 +1,7 @@
 # Sales Operations Tracker
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Open_Dashboard-2563eb?style=for-the-badge)](https://sales-operations-tracker.vercel.app/)
+
 An interactive sales operations dashboard designed to improve pipeline visibility, meeting preparation, and opportunity prioritization.
 
 > **Portfolio demo:** Every organization, person, note, and commercial value in this repository is fictional. The demo is intentionally separated from the production system and contains no employer or customer data.
