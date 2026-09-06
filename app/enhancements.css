@@ -33,6 +33,7 @@
 .meeting-owners,.meeting-footer{display:flex;align-items:center;gap:8px;margin-top:14px}
 .meeting-footer{justify-content:space-between}
 .meeting-card>div:first-child{align-items:center}
+.score-reason{display:inline-flex;margin-top:12px;padding:5px 8px;border-radius:999px;background:#fff7ed;color:#b45309;font-size:10px;font-weight:800}
 .workspace-actions{display:flex;gap:9px;align-items:center}
 .mode-banner{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 15px;border-radius:12px;margin-bottom:15px;font-size:13px}.mode-banner div{display:flex;gap:10px;align-items:center}.mode-banner span{color:#7c8798}.mode-banner button{background:#fff;border:1px solid #e8c46a;border-radius:9px;padding:8px 11px;font-weight:700;cursor:pointer}.attention-banner{background:#fff9e8;border:1px solid #fde6a4;color:#744210}.meeting-banner{background:#f6f8ff;border:1px solid #e6ebff;color:#334155}
 .filters{align-items:flex-end!important}
