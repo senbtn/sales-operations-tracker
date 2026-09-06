@@ -1,5 +1,9 @@
 .kpi{appearance:none;text-align:left;cursor:pointer;transition:.18s ease}
 .kpi:hover,.quarter-grid>button:hover{border-color:#93b4f8;transform:translateY(-1px)}
+.kpi-active{border-color:#f3c65f!important;box-shadow:0 0 0 3px #fef3c7!important}
+.won-lost{cursor:default;display:flex!important;flex-direction:column;padding:24px!important}
+.won-lost-head{display:flex;align-items:center;gap:12px}.won-lost-head>span{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#eef2ff;color:#3156d3;font-size:22px}.won-lost-head h3{margin:0;color:#6b7280;font-size:14px}
+.won-lost-body{display:grid;grid-template-columns:1fr 1px 1fr;align-items:stretch;margin-top:15px}.won-lost-body>i{background:#e5e7eb}.won-lost-body button{border:0;background:transparent;cursor:pointer;padding:4px;text-align:center}.won-lost-body button:hover{background:#f8fafc;border-radius:10px}.won-lost-body b,.won-lost-body strong,.won-lost-body small{display:block}.won-lost-body button:first-child b,.won-lost-body button:first-child strong{color:#16a34a}.won-lost-body button:last-child b,.won-lost-body button:last-child strong{color:#dc2626}.won-lost-body strong{font-size:28px;margin:6px}.won-lost-body small{text-transform:uppercase;font-size:8px;color:#94a3b8;font-weight:800}.won-lost>p{text-align:center;margin:8px 0 0!important}
 .attention-badges{grid-column:1/3;display:flex;gap:5px;margin-top:8px}
 .attention-badges em,.priority{display:inline-flex;width:max-content;border-radius:999px;padding:4px 7px;font-style:normal;font-size:10px;font-weight:800}
 .attention-badges em:nth-child(1),.priority.critical{background:#fee2e2;color:#b91c1c}
@@ -29,6 +33,8 @@
 .meeting-owners,.meeting-footer{display:flex;align-items:center;gap:8px;margin-top:14px}
 .meeting-footer{justify-content:space-between}
 .meeting-card>div:first-child{align-items:center}
+.workspace-actions{display:flex;gap:9px;align-items:center}
+.mode-banner{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:13px 15px;border-radius:12px;margin-bottom:15px;font-size:13px}.mode-banner div{display:flex;gap:10px;align-items:center}.mode-banner span{color:#7c8798}.mode-banner button{background:#fff;border:1px solid #e8c46a;border-radius:9px;padding:8px 11px;font-weight:700;cursor:pointer}.attention-banner{background:#fff9e8;border:1px solid #fde6a4;color:#744210}.meeting-banner{background:#f6f8ff;border:1px solid #e6ebff;color:#334155}
 .filters{align-items:flex-end!important}
 .filter-field{display:flex!important;flex:1 1 145px;min-width:130px;flex-direction:column;align-items:stretch!important;gap:6px!important;font-size:11px!important;font-weight:800;color:#64748b}
 .filter-field>span{text-transform:uppercase;letter-spacing:.04em}
