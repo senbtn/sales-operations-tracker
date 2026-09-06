@@ -1,0 +1,53 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+const seed = [
+  {id:1,partner:"Northstar Systems",customer:"Orion Manufacturing",technology:"Campus Network",value:860000,quarter:"Q1",segment:"Enterprise",vendorAM:"Maya",distiAM:"Alex",competition:"Aruba",stage:"Open",lastContact:"Today",comment:"Revised design shared. Customer validation is scheduled for Friday."},
+  {id:2,partner:"BluePeak Solutions",customer:"Harbor Hotels",technology:"Secure Access",value:525000,quarter:"Q1",segment:"Commercial",vendorAM:"Leo",distiAM:"Alex",competition:"Fortinet",stage:"Open",lastContact:"2d ago",comment:"Commercial proposal submitted; partner is confirming the decision process."},
+  {id:3,partner:"Vertex Digital",customer:"Aster Finance",technology:"Observability",value:410000,quarter:"Q2",segment:"Enterprise",vendorAM:"Maya",distiAM:"Nora",competition:"None",stage:"Open",lastContact:"5d ago",comment:"Technical workshop completed. Waiting for scope confirmation."},
+  {id:4,partner:"Summit IT",customer:"Metro Retail",technology:"SD-WAN",value:295000,quarter:"Q1",segment:"Commercial",vendorAM:"Noah",distiAM:"Nora",competition:"Unknown",stage:"Open",lastContact:"8d ago",comment:"Partner follow-up required; procurement timeline is not confirmed."},
+  {id:5,partner:"CloudBridge",customer:"Nova Logistics",technology:"Cybersecurity",value:240000,quarter:"Q2",segment:"SMB",vendorAM:"Leo",distiAM:"Alex",competition:"Palo Alto",stage:"Open",lastContact:"Today",comment:"Proof of concept plan approved and resources assigned."},
+  {id:6,partner:"Northstar Systems",customer:"Evergreen Health",technology:"Data Center",value:185000,quarter:"Q1",segment:"Public",vendorAM:"Noah",distiAM:"Sam",competition:"None",stage:"Won",lastContact:"1d ago",comment:"Purchase order received; handover to operations is in progress."},
+  {id:7,partner:"Vertex Digital",customer:"Atlas Energy",technology:"Industrial Wireless",value:160000,quarter:"Q3",segment:"Enterprise",vendorAM:"Maya",distiAM:"Sam",competition:"Extreme",stage:"Open",lastContact:"12d ago",comment:"Site survey is pending. Escalation may be needed to protect the timeline."},
+  {id:8,partner:"BluePeak Solutions",customer:"Lumen Education",technology:"Collaboration",value:118000,quarter:"Q2",segment:"SMB",vendorAM:"Leo",distiAM:"Nora",competition:"Unknown",stage:"Open",lastContact:"4d ago",comment:"Budget owner requested a three-year option."},
+  {id:9,partner:"Summit IT",customer:"Pioneer Foods",technology:"Network Security",value:92000,quarter:"Q1",segment:"Commercial",vendorAM:"Noah",distiAM:"Alex",competition:"Fortinet",stage:"Lost",lastContact:"6d ago",comment:"Customer selected the incumbent vendor based on commercial terms."},
+  {id:10,partner:"CloudBridge",customer:"Cedar Group",technology:"Identity",value:78000,quarter:"Q2",segment:"SMB",vendorAM:"Maya",distiAM:"Sam",competition:"None",stage:"Open",lastContact:"3d ago",comment:"License quantities are being finalized."},
+];
+
+const money = (n) => new Intl.NumberFormat("en-US", {style:"currency",currency:"USD",maximumFractionDigits:0}).format(n);
+const tone = {Enterprise:"purple",Commercial:"blue",SMB:"green",Public:"orange"};
+
+export default function Home() {
+  const [rows,setRows]=useState(seed); const [search,setSearch]=useState(""); const [quarter,setQuarter]=useState("All");
+  const [segment,setSegment]=useState("All"); const [owner,setOwner]=useState("All"); const [openOnly,setOpenOnly]=useState(true);
+  const [sort,setSort]=useState("value_desc"); const [view,setView]=useState("table"); const [editing,setEditing]=useState(null);
+  const filtered=useMemo(()=>rows.filter(r=>{
+    const hay=[r.partner,r.customer,r.technology,r.comment].join(" ").toLowerCase();
+    return (!search||hay.includes(search.toLowerCase()))&&(quarter==="All"||r.quarter===quarter)&&(segment==="All"||r.segment===segment)&&(owner==="All"||r.vendorAM===owner)&&(!openOnly||r.stage==="Open");
+  }).sort((a,b)=>sort==="value_desc"?b.value-a.value:sort==="value_asc"?a.value-b.value:a.customer.localeCompare(b.customer)),[rows,search,quarter,segment,owner,openOnly,sort]);
+  const active=rows.filter(r=>r.stage==="Open"), total=active.reduce((s,r)=>s+r.value,0), attention=active.filter(r=>parseInt(r.lastContact)>7).length;
+  const reset=()=>{setSearch("");setQuarter("All");setSegment("All");setOwner("All");setOpenOnly(true);setSort("value_desc")};
+  const save=(item)=>{setRows(old=>item.id?old.map(r=>r.id===item.id?item:r):[{...item,id:Date.now()},...old]);setEditing(null)};
+  return <main>
+    <header><div className="brand"><span>SO</span><div><h1>Sales Operations Tracker</h1><p>Pipeline visibility · Meeting preparation · Opportunity prioritization</p></div></div><div className="demo-pill">PORTFOLIO DEMO · SYNTHETIC DATA</div></header>
+    <section className="kpis">
+      <Kpi label="Active Pipeline" value={money(total)} sub={`${active.length} open opportunities`} />
+      <Kpi label="Open Opportunities" value={active.length} sub="Currently active" />
+      <Kpi label="Won / Lost" value={`${rows.filter(r=>r.stage==="Won").length} / ${rows.filter(r=>r.stage==="Lost").length}`} sub="Closed opportunities" />
+      <Kpi label="Needs Attention" value={attention} sub="No contact for 8+ days" warn />
+    </section>
+    <section className="quarter-card"><div><h2>Quarter Overview</h2><p>Pipeline distribution by expected close quarter</p></div><div className="quarter-grid">{["Q1","Q2","Q3","Q4"].map(q=><div key={q}><b>{q}</b><strong>{money(active.filter(r=>r.quarter===q).reduce((s,r)=>s+r.value,0))}</strong><small>{active.filter(r=>r.quarter===q).length} opportunities</small></div>)}</div></section>
+    <section className="workspace">
+      <div className="workspace-head"><div><h2>Opportunities</h2><p>Manage, filter and review the active funnel</p></div><button className="primary" onClick={()=>setEditing({partner:"",customer:"",technology:"",value:0,quarter:"Q1",segment:"SMB",vendorAM:"Maya",distiAM:"Alex",competition:"Unknown",stage:"Open",lastContact:"Today",comment:""})}>+ Add Opportunity</button></div>
+      <div className="tabs"><button className={view==="table"?"active":""} onClick={()=>setView("table")}>Table View</button><button className={view==="meeting"?"active":""} onClick={()=>setView("meeting")}>Meeting View</button><span>{filtered.length} opportunities</span></div>
+      <div className="filters"><input placeholder="Search partner, customer, technology or notes" value={search} onChange={e=>setSearch(e.target.value)}/>{[[quarter,setQuarter,["All","Q1","Q2","Q3","Q4"]],[segment,setSegment,["All","SMB","Commercial","Enterprise","Public"]],[owner,setOwner,["All","Maya","Leo","Noah"]]].map(([v,set,opts],i)=><select key={i} value={v} onChange={e=>set(e.target.value)}>{opts.map(x=><option key={x}>{x}</option>)}</select>)}<select value={sort} onChange={e=>setSort(e.target.value)}><option value="value_desc">Value: High → Low</option><option value="value_asc">Value: Low → High</option><option value="customer">Customer A → Z</option></select><label><input type="checkbox" checked={openOnly} onChange={e=>setOpenOnly(e.target.checked)}/> Open only</label><button onClick={reset}>Reset</button></div>
+      {view==="table"?<div className="table-wrap"><table><thead><tr><th>#</th><th>PARTNER</th><th>CUSTOMER</th><th>TECHNOLOGY</th><th>COMPETITION</th><th onClick={()=>setSort(sort==="value_desc"?"value_asc":"value_desc")} className="sortable">VALUE ↕</th><th>QUARTER</th><th>SEGMENT</th><th>OWNER</th><th>LAST CONTACT</th><th>FUNNEL NOTE</th><th></th></tr></thead><tbody>{filtered.map((r,i)=><tr key={r.id}><td>{i+1}</td><td><b>{r.partner}</b></td><td>{r.customer}</td><td>{r.technology}</td><td><span className={`tag ${r.competition==="None"?"green":r.competition==="Unknown"?"gray":"orange"}`}>{r.competition}</span></td><td><strong>{money(r.value)}</strong></td><td><span className="quarter">{r.quarter}</span></td><td><span className={`tag ${tone[r.segment]}`}>{r.segment}</span></td><td>{r.vendorAM}<small className="sub">Disti: {r.distiAM}</small></td><td><span className={parseInt(r.lastContact)>7?"late":"contact"}>{r.lastContact}</span></td><td className="note">{r.comment}</td><td><button onClick={()=>setEditing(r)}>Edit</button><button className="danger" onClick={()=>setRows(old=>old.filter(x=>x.id!==r.id))}>Delete</button></td></tr>)}</tbody></table></div>:<div className="cards">{filtered.map(r=><article key={r.id}><div><span className={`tag ${tone[r.segment]}`}>{r.segment}</span><span className="quarter">{r.quarter}</span></div><h3>{r.customer}</h3><p>{r.partner} · {r.technology}</p><strong>{money(r.value)}</strong><blockquote>{r.comment}</blockquote><button onClick={()=>setEditing(r)}>Open opportunity</button></article>)}</div>}
+    </section>
+    <footer>Interactive demo · All organizations, people and values are fictional · Data resets on refresh</footer>
+    {editing&&<Modal item={editing} onSave={save} onClose={()=>setEditing(null)}/>} 
+  </main>
+}
+
+function Kpi({label,value,sub,warn}){return <div className={`kpi ${warn?"warn":""}`}><span>{warn?"!":"↗"}</span><h3>{label}</h3><strong>{value}</strong><p>{sub}</p></div>}
+function Modal({item,onSave,onClose}){const [f,setF]=useState({...item});const u=(k,v)=>setF(x=>({...x,[k]:v}));return <div className="overlay" onClick={onClose}><form className="modal" onClick={e=>e.stopPropagation()} onSubmit={e=>{e.preventDefault();onSave({...f,value:Number(f.value)})}}><div className="modal-head"><div><h2>{f.id?"Edit Opportunity":"Add Opportunity"}</h2><p>This demo stores changes only in your browser session.</p></div><button type="button" onClick={onClose}>×</button></div><div className="form-grid">{[["Partner","partner"],["Customer","customer"],["Technology","technology"],["Value","value"]].map(([l,k])=><label key={k}>{l}<input required type={k==="value"?"number":"text"} value={f[k]} onChange={e=>u(k,e.target.value)}/></label>)}{[["Quarter","quarter",["Q1","Q2","Q3","Q4"]],["Segment","segment",["SMB","Commercial","Enterprise","Public"]],["Vendor AM","vendorAM",["Maya","Leo","Noah"]],["Distributor AM","distiAM",["Alex","Nora","Sam"]],["Competition","competition",["None","Unknown","Aruba","Fortinet","Palo Alto","Extreme"]],["Stage","stage",["Open","Won","Lost"]]].map(([l,k,opts])=><label key={k}>{l}<select value={f[k]} onChange={e=>u(k,e.target.value)}>{opts.map(x=><option key={x}>{x}</option>)}</select></label>)}<label className="wide">Funnel note<textarea value={f.comment} onChange={e=>u("comment",e.target.value)}/></label></div><div className="modal-actions"><button type="button" onClick={onClose}>Cancel</button><button className="primary">Save Opportunity</button></div></form></div>}
