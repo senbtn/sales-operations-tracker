@@ -77,7 +77,10 @@ footer{display:flex!important;flex-direction:column;align-items:center;gap:6px}f
 .workspace .table-wrap .tag{padding:4px 6px;font-size:10px;white-space:nowrap}
 .workspace .table-wrap .owner-badge{max-width:100%;padding:4px 6px;white-space:normal}
 .workspace .table-wrap .note{max-width:none;line-height:1.35}
-.workspace .table-wrap .row-actions{padding-left:7px}
-.workspace .table-wrap .row-actions button{min-width:0;padding:6px 4px!important;font-size:10px}
+.workspace .table-wrap .row-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding-left:7px}
+.workspace .table-wrap .row-actions button{min-width:0;width:auto;margin:0!important;padding:6px 3px!important;font-size:9px}
+.workspace .table-wrap .row-actions .won-action{border-color:#bbf7d0;background:#f0fdf4;color:#15803d}
+.workspace .table-wrap .row-actions .lost-action{border-color:#fecaca;background:#fff7f7;color:#b91c1c}
+.workspace .table-wrap .row-actions .reopen-action{grid-column:1/-1;border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8}
 @media(max-width:1400px){.workspace .table-wrap .competition-tag small{display:none}}
 @media(max-width:1200px){main{padding-left:16px;padding-right:16px}.workspace{padding:16px}.workspace .table-wrap table{font-size:10px}.workspace .table-wrap th,.workspace .table-wrap td{padding-left:3px;padding-right:3px}}
