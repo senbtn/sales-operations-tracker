@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {useMemo,useState} from "react";
 import styles from "./page.module.css";
+import f from "./finance.module.css";
 
 const INITIAL=[
  {id:1,partner:"Northstar Systems",customer:"Orion Manufacturing",project:"Campus refresh",am:"Maya",value:286000,status:"presales_waiting",date:"Oct 28, 2026",note:"The BoM is under presales review; wireless scope is being confirmed.",events:["Request created from Excel","Sent to presales"]},
@@ -13,10 +14,24 @@ const INITIAL=[
 ];
 const STATUS={new:"New request",presales_waiting:"Awaiting presales",cisco_waiting:"Awaiting vendor pricing",quote_ready:"Quote ready",partner_follow_up:"Partner follow-up",won:"Order",lost:"Lost"};
 const NEXT={new:"Review request",presales_waiting:"Follow up with presales",cisco_waiting:"Follow up on vendor pricing",quote_ready:"Send quote to partner",partner_follow_up:"Follow up with partner",won:"Completed",lost:"Closed"};
+const TERMS=[
+ {company:"Northstar Systems",days:45,limit:350000,risk:"Low",note:"Standard commercial terms"},
+ {company:"BluePeak Solutions",days:30,limit:200000,risk:"Low",note:"Prepayment required above the limit"},
+ {company:"Vertex Digital",days:60,limit:500000,risk:"Review",note:"Extended terms require finance approval"},
+ {company:"Summit IT",days:21,limit:125000,risk:"Low",note:"Project-based credit review"},
+ {company:"CloudBridge",days:30,limit:175000,risk:"Hold",note:"New orders require finance confirmation"}
+];
+const TAXES=[
+ {sku:"SV-SUPPORT-36",description:"Three-year technical support service",type:"Service levy",rate:7.5,base:18000},
+ {sku:"LIC-SEC-12M",description:"Security subscription license",type:"Digital service tax",rate:5,base:24000},
+ {sku:"HW-AP-9000",description:"Enterprise wireless access point",type:"Environmental fee",rate:2,base:12500},
+ {sku:"PSU-AC-750W",description:"Standalone AC power supply",type:"Equipment levy",rate:3,base:4800},
+ {sku:"PSU-BUNDLE",description:"Power supply bundled with device",type:"Exempt",rate:0,base:4800}
+];
 const money=n=>n?`$${Number(n).toLocaleString("en-US")}`:"—";
 
 export default function DealFlow(){
- const[rows,setRows]=useState(INITIAL),[mode,setMode]=useState("dashboard"),[entity,setEntity]=useState(""),[search,setSearch]=useState(""),[filter,setFilter]=useState("active"),[selected,setSelected]=useState(null),[upload,setUpload]=useState(false),[notice,setNotice]=useState("");
+ const[rows,setRows]=useState(INITIAL),[mode,setMode]=useState("dashboard"),[entity,setEntity]=useState(""),[search,setSearch]=useState(""),[filter,setFilter]=useState("active"),[selected,setSelected]=useState(null),[upload,setUpload]=useState(false),[notice,setNotice]=useState(""),[financeTab,setFinanceTab]=useState("terms"),[financeSearch,setFinanceSearch]=useState("");
  const active=rows.filter(r=>!["won","lost"].includes(r.status));
  const filtered=useMemo(()=>rows.filter(r=>{const text=`${r.customer} ${r.partner} ${r.project} ${r.note}`.toLowerCase();return(!search||text.includes(search.toLowerCase()))&&(!entity||r.am===entity)&&(filter==="active"?!["won","lost"].includes(r.status):r.status===filter)}),[rows,search,filter,entity]);
  const change=(row,status)=>{const label=STATUS[status];const next={...row,status,note:`Status updated: ${label}.`,events:[...row.events,label]};setRows(old=>old.map(r=>r.id===row.id?next:r));setSelected(next)};
@@ -29,21 +44,37 @@ export default function DealFlow(){
    <nav><button className={mode!=="sales"?styles.active:""} onClick={()=>{setMode("dashboard");setEntity("")}}><i>DF</i><span>DealFlow</span></button><Link href="/"><i>ST</i><span>Sales Tracker</span><b>↗</b></Link></nav>
    <span className={styles.navLabel}>DEALFLOW</span>
    <nav className={styles.workNav}><button className={mode==="dashboard"?styles.active:""} onClick={()=>{setMode("dashboard");setEntity("")}}><span><strong>Dashboard</strong><small>Partners and projects</small></span><b>{active.length}</b></button><button className={mode==="cisco"?styles.active:""} onClick={()=>{setMode("cisco");setEntity("")}}><span><strong>Vendor AM</strong><small>Open work by account owner</small></span><b>{active.length}</b></button></nav>
+   <span className={styles.navLabel}>TOOLS</span>
+   <nav className={styles.workNav}><button className={mode==="finance"?styles.active:""} onClick={()=>{setMode("finance");setEntity("")}}><span><strong>Finance & Cost</strong><small>Terms and tax reference</small></span><b>↗</b></button></nav>
    <div className={styles.sidebarFoot}><span>PUBLIC DEMO</span><small>Synthetic data only</small></div>
   </aside>
   <main className={styles.main}>
    <div className={styles.topbar}><div><span>Workspace</span><b>/</b><strong>DealFlow</strong></div><div><span className={styles.synthetic}>SYNTHETIC DATA</span><Link href="/">Sales Operations ↗</Link></div></div>
-   <div className={styles.title}><div><h1>{mode==="cisco"?"Vendor AM":"Dashboard"}</h1><p>{mode==="cisco"?"Review open work by account owner.":"Partners, open work and relationships in one place."}</p></div><button className={styles.add} onClick={()=>setUpload(true)}>+ Add</button></div>
+   <div className={styles.title}><div><h1>{mode==="finance"?"Finance & Cost":mode==="cisco"?"Vendor AM":"Dashboard"}</h1><p>{mode==="finance"?"Synthetic payment terms and product-tax reference data.":mode==="cisco"?"Review open work by account owner.":"Partners, open work and relationships in one place."}</p></div>{mode!=="finance"&&<button className={styles.add} onClick={()=>setUpload(true)}>+ Add</button>}</div>
    {notice&&<div className={styles.notice}>✓ {notice}<button onClick={()=>setNotice("")}>×</button></div>}
    {mode==="dashboard"&&<>
     <section className={styles.metrics}>{[["Active requests",active.length,"active"],["Awaiting vendor pricing",rows.filter(r=>r.status==="cisco_waiting").length,"cisco_waiting"],["Partner follow-up",rows.filter(r=>r.status==="partner_follow_up").length,"partner_follow_up"],["Quote ready",rows.filter(r=>r.status==="quote_ready").length,"quote_ready"]].map(([l,v,k])=><button key={k} onClick={()=>setFilter(k)}><span>{l}</span><strong>{v}</strong><small>Show projects →</small></button>)}</section>
     <section className={styles.partnerPanel}><div><span className={styles.eyebrow}>PARTNERS</span><h2>Open work</h2><p>Track partner and project status in the same workspace.</p></div><div className={styles.partnerStats}><span><small>Active partners</small><b>{new Set(active.map(r=>r.partner)).size}</b></span><span><small>Total value</small><b>{money(active.reduce((n,r)=>n+r.value,0))}</b></span><span><small>New request</small><b>{rows.filter(r=>r.status==="new").length}</b></span></div></section>
    </>}
    {mode==="cisco"&&<section className={styles.entityBar}><div><strong>Account owner and open request count</strong><span>Select an owner to filter the request list below.</span></div><div className={styles.chips}><button className={!entity?styles.chipActive:""} onClick={()=>setEntity("")}><span>All</span><b>{active.length}</b></button>{ams.map(am=><button key={am} className={entity===am?styles.chipActive:""} onClick={()=>setEntity(am)}><span>{am}</span><b>{active.filter(r=>r.am===am).length}</b></button>)}</div></section>}
-   <div className={styles.toolbar}><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search customer, partner, project or notes…"/><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="active">Active requests</option>{Object.entries(STATUS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><div><button className={styles.viewActive}>List</button><button>Cards</button></div></div>
-   <section className={styles.workspace}><div className={styles.recordsHead}><strong>{entity||"Projects"}</strong><span>{filtered.length} records</span></div><div className={styles.columns}><span>Customer / project</span><span>Partner</span><span>Value</span><span>Uploaded / created</span><span>Next action / latest note</span><span>Actions</span></div>{filtered.map(r=><article key={r.id}><button className={styles.rowOpen} onClick={()=>setSelected(r)}><span className={styles.customer}><strong>{r.customer}</strong><small><em>{r.am}</em><i>{STATUS[r.status]}</i></small></span><span>{r.partner}</span><strong>{money(r.value)}</strong><span><b>{r.date}</b></span><span className={styles.actionNote}><strong>{NEXT[r.status]}</strong><small>{STATUS[r.status]}</small><span>{r.note}</span></span></button><div className={styles.rowActions}><button onClick={()=>setSelected(r)}>Timeline <span>{r.events.length}</span></button><button onClick={()=>setSelected(r)}>Update</button></div></article>)}</section>
+   {mode!=="finance"&&<><div className={styles.toolbar}><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search customer, partner, project or notes…"/><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="active">Active requests</option>{Object.entries(STATUS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><div><button className={styles.viewActive}>List</button><button>Cards</button></div></div>
+   <section className={styles.workspace}><div className={styles.recordsHead}><strong>{entity||"Projects"}</strong><span>{filtered.length} records</span></div><div className={styles.columns}><span>Customer / project</span><span>Partner</span><span>Value</span><span>Uploaded / created</span><span>Next action / latest note</span><span>Actions</span></div>{filtered.map(r=><article key={r.id}><button className={styles.rowOpen} onClick={()=>setSelected(r)}><span className={styles.customer}><strong>{r.customer}</strong><small><em>{r.am}</em><i>{STATUS[r.status]}</i></small></span><span>{r.partner}</span><strong>{money(r.value)}</strong><span><b>{r.date}</b></span><span className={styles.actionNote}><strong>{NEXT[r.status]}</strong><small>{STATUS[r.status]}</small><span>{r.note}</span></span></button><div className={styles.rowActions}><button onClick={()=>setSelected(r)}>Timeline <span>{r.events.length}</span></button><button onClick={()=>setSelected(r)}>Update</button></div></article>)}</section></>}
+   {mode==="finance"&&<FinanceWorkspace tab={financeTab} setTab={setFinanceTab} search={financeSearch} setSearch={setFinanceSearch}/>}
   </main>
   {selected&&<><button className={styles.backdrop} onClick={()=>setSelected(null)}/><aside className={styles.drawer}><button className={styles.close} onClick={()=>setSelected(null)}>×</button><div className={styles.drawerBadges}><span>{STATUS[selected.status]}</span></div><h2>{selected.customer}</h2><p>{selected.partner} · {selected.project}</p><div className={styles.drawerMeta}><span><small>Value</small><b>{money(selected.value)}</b></span><span><small>Vendor AM</small><b>{selected.am}</b></span></div><div className={styles.workflow}>{["new","presales_waiting"].includes(selected.status)&&<button onClick={()=>change(selected,"cisco_waiting")}>Sent to vendor</button>}{["new","presales_waiting","cisco_waiting"].includes(selected.status)&&<button onClick={()=>change(selected,"quote_ready")}>Quote ready</button>}{selected.status==="quote_ready"&&<button onClick={()=>change(selected,"partner_follow_up")}>Send to partner</button>}{selected.status==="partner_follow_up"&&<><button onClick={()=>change(selected,"won")}>Order</button><button className={styles.lost} onClick={()=>change(selected,"lost")}>Lost</button></>}</div><section className={styles.quick}><span className={styles.eyebrow}>QUICK UPDATE</span><h3>What changed in this project?</h3><textarea defaultValue={selected.note}/><button onClick={()=>setNotice("Demo update saved.")}>Update</button></section><section className={styles.timeline}><h3>History</h3>{selected.events.slice().reverse().map((e,i)=><div key={i}><i/><span><b>{e}</b><small>{i?"Previous update":"Latest update"}</small></span></div>)}</section></aside></>}
   {upload&&<div className={styles.modalWrap} onMouseDown={e=>e.target===e.currentTarget&&setUpload(false)}><div className={styles.modal}><button className={styles.close} onClick={()=>setUpload(false)}>×</button><span className={styles.eyebrow}>QUICK INTAKE</span><h2>Create a request from an Excel BoM</h2><label className={styles.drop}><input type="file" multiple accept=".xlsx,.xls,.csv" onChange={e=>ingest(e.target.files)}/><b>Drop files here or click to browse</b><span>Up to 50 Excel / CSV files</span></label></div></div>}
  </div>
+}
+
+function FinanceWorkspace({tab,setTab,search,setSearch}){
+ const q=search.toLowerCase();
+ const terms=TERMS.filter(x=>`${x.company} ${x.note}`.toLowerCase().includes(q));
+ const taxes=TAXES.filter(x=>`${x.sku} ${x.description} ${x.type}`.toLowerCase().includes(q));
+ return <section className={f.finance}>
+  <div className={f.intro}><div><span>COMMERCIAL REFERENCE</span><h2>Finance knowledge base</h2><p>Fast, searchable reference data for commercial decisions.</p></div><em>DEMO DATA · NOT FOR QUOTING</em></div>
+  <div className={f.tabs}><button className={tab==="terms"?f.active:""} onClick={()=>setTab("terms")}>Payment Terms</button><button className={tab==="taxes"?f.active:""} onClick={()=>setTab("taxes")}>Tax Reference</button></div>
+  <div className={f.search}><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==="terms"?"Search company or finance note…":"Search SKU, description or tax type…"}/><button onClick={()=>setSearch("")}>Reset</button></div>
+  {tab==="terms"?<div className={f.card}><div className={f.terms}><span>Company</span><span>Payment term</span><span>Credit limit</span><span>Risk</span><span>Finance note</span></div>{terms.map(x=><div className={f.terms} key={x.company}><strong>{x.company}</strong><span><b>{x.days}</b> days</span><span>{money(x.limit)}</span><span className={f[`risk${x.risk}`]}>{x.risk}</span><span>{x.note}</span></div>)}</div>
+  :<><div className={f.rule}><strong>Bundled power-supply rule</strong><span>A power supply included under a device configuration is exempt in this demo. A separately configured unit receives the applicable equipment levy.</span></div><div className={f.card}><div className={f.tax}><span>SKU / description</span><span>Tax type</span><span>Rate</span><span>Base amount</span><span>Calculated tax</span></div>{taxes.map(x=><div className={f.tax} key={x.sku}><span><strong>{x.sku}</strong><small>{x.description}</small></span><span>{x.type}</span><b>{x.rate}%</b><span>{money(x.base)}</span><strong>{money(x.base*x.rate/100)}</strong></div>)}</div></>}
+ </section>
 }
