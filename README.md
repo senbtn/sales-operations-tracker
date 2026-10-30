@@ -79,3 +79,21 @@ Technology Sales · Channel Development · Sales Operations
 
 If you are reviewing this project as part of a job application, the most relevant areas are the workflow design, prioritization logic, role-based production architecture, and separation of confidential production data from this public demonstration.
 \n## Channel DealFlow demo\n\nThe public `/dealflow` workspace demonstrates partner workbook intake, request ownership, pricing handoffs, status transitions and a request timeline using synthetic data only. Drag-and-drop accepts up to 50 demo files; no files are uploaded to a server.\n\n## Finance & Cost workspace\n\nThe public DealFlow demo also includes synthetic payment terms, credit limits, finance notes, product-tax references, calculated tax amounts, and a simplified bundled power-supply exemption example. No production finance or tax data is included.\n
+
+## Channel DealFlow demo
+
+[![Open DealFlow](https://img.shields.io/badge/DealFlow-Open_Workspace-172033?style=for-the-badge)](https://sales-operations-tracker.vercel.app/dealflow)
+
+The public DealFlow workspace demonstrates partner workbook intake, request ownership, pricing handoffs, status transitions, account-owner workload, quick updates, and activity timelines.
+
+### Finance & Cost
+
+The Finance & Cost workspace adds a commercial reference layer with:
+
+- Synthetic company payment terms and credit limits
+- Finance notes and simplified risk indicators
+- Searchable SKU and product-description tax references
+- Tax rates, base values, and calculated tax amounts
+- A simplified bundled-versus-standalone power-supply rule
+
+All DealFlow and Finance & Cost records are fictional, browser-local demo data. No production finance, tax, partner, or customer data is included.
