@@ -78,3 +78,4 @@ Technology Sales · Channel Development · Sales Operations
 ---
 
 If you are reviewing this project as part of a job application, the most relevant areas are the workflow design, prioritization logic, role-based production architecture, and separation of confidential production data from this public demonstration.
+\n## Channel DealFlow demo\n\nThe public `/dealflow` workspace demonstrates partner workbook intake, request ownership, pricing handoffs, status transitions and a request timeline using synthetic data only. Drag-and-drop accepts up to 50 demo files; no files are uploaded to a server.\n
