@@ -15,6 +15,7 @@ I designed this application around the actual workflow of technology distributio
 ## What it demonstrates
 
 - Executive KPI cards for active pipeline, open opportunities, closed outcomes, and neglected deals
+- Dedicated Won/Lost analytics with win rate, won and lost value, partner performance, and loss-reason analysis
 - Quarter-level pipeline summaries
 - Search and multi-dimensional filtering
 - Click-to-sort opportunity values
