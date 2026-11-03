@@ -1,47 +1,70 @@
 # Sales Operations Tracker
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Open_Dashboard-2563eb?style=for-the-badge)](https://sales-operations-tracker.vercel.app/)
+[![Channel DealFlow](https://img.shields.io/badge/DealFlow-Open_Workspace-172033?style=for-the-badge)](https://sales-operations-tracker.vercel.app/dealflow)
 
-An interactive sales operations dashboard designed to improve pipeline visibility, meeting preparation, opportunity prioritization, and Won/Lost decision analysis.
+An interactive sales operations workspace for pipeline visibility, meeting preparation, opportunity prioritization, competitive intelligence, and Won/Lost analysis.
 
-> **Portfolio demo:** Every organization, person, note, and commercial value in this repository is fictional. The demo is intentionally separated from the production system and contains no employer or customer data.
+> **Public portfolio demo:** Every organization, person, note, and commercial value is fictional. The demo is fully separated from the production system and contains no employer, partner, or customer data.
 
-## Why I built it
+## What the product does
 
-Sales teams often manage critical funnel information across spreadsheets, messages, and meeting notes. That makes ownership unclear, follow-ups easy to miss, and pipeline meetings unnecessarily manual.
+Sales Operations Tracker consolidates the operational context normally scattered across spreadsheets, messages, and meeting notes. It gives sales teams one place to understand ownership, commercial value, expected quarter, competition, last activity, next actions, and closed outcomes.
 
-I designed this application around the actual workflow of technology distribution and channel sales teams: one shared view for opportunity ownership, commercial value, expected quarter, competitive position, last contact, and the next conversation.
+### AI Sales Assistant
 
-## What it demonstrates
+The dashboard includes an English-language conversational assistant that analyzes the synthetic portfolio data directly in the browser. Reviewers can ask questions such as:
 
-- Executive KPI cards for active pipeline, open opportunities, closed outcomes, and neglected deals
-- Dedicated Won/Lost analytics with win rate, won and lost value, partner performance, and loss-reason analysis
+- How many open opportunities does Maya own?
+- What is the Q2 pipeline?
+- List the opportunities competing with Fortinet.
+- Which partners have Won outcomes?
+- Show the details of the largest opportunities.
+
+The public assistant is read-only, uses fictional in-memory records, and does not connect to the private production database.
+
+## Core capabilities
+
+- Executive KPI cards for pipeline, open opportunities, closed outcomes, and neglected deals
+- Natural-language analysis through the AI Sales Assistant demo
+- Dedicated Won/Lost analytics with win rate, won/lost value, partner performance, and loss reasons
 - Quarter-level pipeline summaries
-- Search and multi-dimensional filtering
-- Click-to-sort opportunity values
+- Search, multi-dimensional filtering, and sortable values
 - Table and meeting-focused views
 - Vendor and distributor ownership
-- Competition tracking and funnel notes
-- Add, edit, and delete interactions
-- Responsive dashboard layout
-- Safe demo mode using synthetic in-memory data
+- Brand and distributor competition tracking
+- Funnel notes and last-contact prioritization
+- Add, edit, close, reopen, and delete interactions
+- CSV export and a responsive dashboard layout
+- Safe synthetic-data mode with browser-local state
 
 ## Product decisions
 
 | Challenge | Product response |
 |---|---|
 | Important deals become stale | Highlights opportunities with no recent contact |
-| Funnel meetings require manual preparation | Dedicated meeting view and ownership filters |
+| Funnel meetings require manual preparation | Meeting view, ownership filters, and priority scoring |
 | Commercial context is fragmented | Value, quarter, competition, ownership, and notes live together |
+| Managers need answers without rebuilding reports | Conversational analysis over the current portfolio |
 | Public demos can expose confidential data | Separate repository with synthetic data and no production connection |
 
-## Tech stack
+## Channel DealFlow
 
-- **Next.js 14**
-- **React 18**
-- **JavaScript**
-- **CSS**
-- Production implementation: **Supabase**, authentication, row-level security, and **Vercel**
+The public `/dealflow` workspace demonstrates partner workbook intake, request ownership, pricing handoffs, status transitions, account-owner workload, quick updates, and activity timelines.
+
+Its Finance & Cost workspace includes synthetic payment terms, credit limits, finance notes, product-tax references, calculated tax values, and a simplified bundled power-supply exemption example.
+
+## Production architecture
+
+The private production implementation uses:
+
+- Next.js and React
+- Supabase authentication and row-level security
+- Vercel deployment
+- Role-aware read/write access
+- A server-side OpenAI query planner
+- Local calculation over RLS-authorized records
+- No raw production rows, company names, or comments sent to the AI service
 
 ## Run locally
 
@@ -54,46 +77,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Demo behavior
 
-The public build has no login and no database connection. Changes remain in browser memory and reset when the page is refreshed. This keeps the experience interactive without collecting or exposing data.
+The public build has no login and no database connection. Changes remain in browser memory and reset on refresh. No production finance, tax, partner, customer, or opportunity data is included.
 
 ## My role
 
 I identified the workflow problem, defined the requirements, designed the information architecture and access model, and iteratively built and tested the application with AI-assisted development.
 
-This project reflects how I work as a technology sales professional: translating operational friction into a practical, deployed tool.
-
-## Roadmap
-
-- Activity history and structured next actions
-- Configurable pipeline health rules
-- Forecast accuracy tracking
-- Import validation and data-quality reporting
-- Pricing and follow-up workflow integration
+This project reflects how I work as a technology sales professional: translating operational friction into a practical, deployed product.
 
 ## Author
 
 **Botan Şen**  
 Technology Sales · Channel Development · Sales Operations
-
----
-
-If you are reviewing this project as part of a job application, the most relevant areas are the workflow design, prioritization logic, role-based production architecture, and separation of confidential production data from this public demonstration.
-\n## Channel DealFlow demo\n\nThe public `/dealflow` workspace demonstrates partner workbook intake, request ownership, pricing handoffs, status transitions and a request timeline using synthetic data only. Drag-and-drop accepts up to 50 demo files; no files are uploaded to a server.\n\n## Finance & Cost workspace\n\nThe public DealFlow demo also includes synthetic payment terms, credit limits, finance notes, product-tax references, calculated tax amounts, and a simplified bundled power-supply exemption example. No production finance or tax data is included.\n
-
-## Channel DealFlow demo
-
-[![Open DealFlow](https://img.shields.io/badge/DealFlow-Open_Workspace-172033?style=for-the-badge)](https://sales-operations-tracker.vercel.app/dealflow)
-
-The public DealFlow workspace demonstrates partner workbook intake, request ownership, pricing handoffs, status transitions, account-owner workload, quick updates, and activity timelines.
-
-### Finance & Cost
-
-The Finance & Cost workspace adds a commercial reference layer with:
-
-- Synthetic company payment terms and credit limits
-- Finance notes and simplified risk indicators
-- Searchable SKU and product-description tax references
-- Tax rates, base values, and calculated tax amounts
-- A simplified bundled-versus-standalone power-supply rule
-
-All DealFlow and Finance & Cost records are fictional, browser-local demo data. No production finance, tax, partner, or customer data is included.
