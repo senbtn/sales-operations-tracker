@@ -42,25 +42,71 @@ return <main><header><div className="brand"><span>SO</span><div><h1>Sales Operat
 {view==="meeting"&&<div className="mode-banner meeting-banner"><div><strong>Meeting View</strong><span>Cards stay in priority order while opportunities are reviewed.</span></div></div>}
 {view==="table"?<Table rows={filtered} setRows={setRows} edit={setEditing} sort={sort} setSort={setSort}/>:<Meeting rows={filtered} edit={setEditing}/>}</>}</section><footer><strong>Sales Operations Tracker</strong><span>Interactive portfolio demo · All organizations, people and values are fictional · Data resets on refresh</span><span>Designed and developed by <b>Botan Şen</b> · 2026</span></footer>{editing&&<Modal item={editing} save={save} close={()=>setEditing(null)}/>}<PortfolioAssistant rows={rows}/></main>}
 function PortfolioAssistant({rows}){
-const [open,setOpen]=useState(false),[question,setQuestion]=useState(""),[messages,setMessages]=useState([{role:"assistant",text:"Ask me about the synthetic pipeline, ownership, quarters, competition, values, or Won/Lost outcomes."}]);
-const ask=()=>{const q=question.trim();if(!q)return;setQuestion("");setMessages(m=>[...m,{role:"user",text:q},{role:"assistant",...answerDemoQuestion(q,rows)}])};
-return <><button onClick={()=>setOpen(true)} style={demoAssistantLauncher}>✦ Sales Assistant <small style={{opacity:.75}}>DEMO</small></button>{open&&<aside style={demoAssistantPanel}><header style={demoAssistantHeader}><div><strong style={{fontSize:18}}>✦ Sales Assistant</strong><small style={{display:"block",color:"#64748b",marginTop:3}}>Synthetic portfolio data · Read only</small></div><button onClick={()=>setOpen(false)} style={demoAssistantClose}>×</button></header><div style={demoAssistantMessages}>{messages.map((m,i)=><div key={i} style={m.role==="user"?demoAssistantUser:demoAssistantReply}><div>{m.text}</div>{m.metrics&&<div style={demoAssistantMetrics}>{m.metrics.map(x=><span key={x.label} style={demoAssistantMetric}><small>{x.label}</small><b>{x.value}</b></span>)}</div>}{m.rows&&m.rows.map(r=><div key={r.id} style={demoAssistantRow}><b>{r.customer} — {r.technology}</b><strong>{money(r.value)}</strong><small>{r.partner} · {r.quarter} · {r.vendorAM} / {r.distiAM} · {r.stage}</small></div>)}</div>)}</div><div style={demoAssistantInput}><input value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")ask()}} placeholder="Ask about the Sales Tracker…" style={{minWidth:0,padding:11,border:"1px solid #cbd5e1",borderRadius:9}}/><button onClick={ask} style={{border:0,borderRadius:9,background:"#0878b9",color:"#fff",fontWeight:800,padding:"0 16px"}}>Ask</button></div></aside>}</>
+const [open,setOpen]=useState(false),[question,setQuestion]=useState(""),[context,setContext]=useState(null),[messages,setMessages]=useState([{role:"assistant",text:"I can analyze the complete synthetic portfolio—not just count records. Ask about pipeline, ownership, partner coverage, competition, risk, next actions, or Won/Lost outcomes."}]);
+const ask=()=>{const q=question.trim();if(!q)return;const result=answerDemoQuestion(q,rows,context);setQuestion("");setContext(result.context);setMessages(m=>[...m,{role:"user",text:q},{role:"assistant",...result}])};
+return <><button onClick={()=>setOpen(true)} style={demoAssistantLauncher}>✦ Sales Assistant <small style={{opacity:.75}}>DEMO</small></button>{open&&<aside style={demoAssistantPanel}><header style={demoAssistantHeader}><div><strong style={{fontSize:18}}>✦ Sales Assistant</strong><small style={{display:"block",color:"#64748b",marginTop:3}}>Synthetic portfolio intelligence · Browser local · Read only</small></div><button onClick={()=>setOpen(false)} style={demoAssistantClose}>×</button></header><div style={demoAssistantMessages}>{messages.map((m,i)=><div key={i} style={m.role==="user"?demoAssistantUser:demoAssistantReply}><div style={{whiteSpace:"pre-wrap"}}>{m.text}</div>{m.metrics&&<div style={demoAssistantMetrics}>{m.metrics.map(x=><span key={x.label} style={demoAssistantMetric}><small>{x.label}</small><b>{x.value}</b></span>)}</div>}{m.rows&&m.rows.map(r=><div key={r.id} style={demoAssistantRow}><b>{r.customer} — {r.technology}</b><strong>{money(r.value)}</strong><small>{r.partner} · {r.quarter} · {r.vendorAM} / {r.distiAM} · {r.stage}</small><small style={{gridColumn:"1 / -1",color:"#475569"}}>{r.days===0?"Contacted today":r.days+" days since contact"} · Brand: {r.competition} · Disti: {r.distiCompetition}</small></div>)}</div>)}</div><div style={demoAssistantInput}><input value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")ask()}} placeholder="Ask about the synthetic portfolio…" style={{minWidth:0,padding:11,border:"1px solid #cbd5e1",borderRadius:9}}/><button onClick={ask} style={{border:0,borderRadius:9,background:"#0878b9",color:"#fff",fontWeight:800,padding:"0 16px"}}>Ask</button></div></aside>}</>
 }
-function answerDemoQuestion(question,rows){
-const q=question.toLowerCase(),norm=x=>String(x||"").toLowerCase();
-let found=[...rows],filters=[];
+const normText=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9$%]+/g," ").trim();
+const splitCompetition=x=>String(x||"").split(/[,;\/&+]+/).map(v=>v.trim()).filter(Boolean);
+const isRealCompetition=x=>x&&x!=="None"&&x!=="Unknown";
+const commercialSignals=r=>{
+const text=normText([r.comment,r.competitionNote,r.distiNote].join(" "));
+const negative=["pending","waiting","not confirmed","may be needed","alternative","competing","incumbent","discount","price","delay","escalation","not disclosed","unknown"].filter(x=>text.includes(x));
+const positive=["approved","received","awarded","accepted","completed","preferred","exclusive","scheduled","assigned"].filter(x=>text.includes(x));
+return{negative,positive}
+};
+const advisoryScore=r=>{
+const signals=commercialSignals(r);
+return Math.min(100,(r.days>10?30:r.days>7?22:r.days>4?10:0)+(r.value>=400000?18:r.value>=200000?10:4)+(isRealCompetition(r.competition)?15:r.competition==="Unknown"?8:0)+(isRealCompetition(r.distiCompetition)?15:r.distiCompetition==="Unknown"?7:0)+Math.min(18,signals.negative.length*6)-Math.min(10,signals.positive.length*3))
+};
+const groupRows=(rows,key)=>Object.entries(rows.reduce((a,r)=>{const k=r[key]||"Not specified";a[k]=a[k]||{count:0,value:0};a[k].count++;a[k].value+=Number(r.value||0);return a},{})).sort((a,b)=>b[1].count-a[1].count||b[1].value-a[1].value);
+function answerDemoQuestion(question,rows,previous){
+const q=normText(question),followUp=/^(details|show details|list them|which ones|breakdown|what about these|and these|why|next actions|what should i do)/.test(q)||/\b(these|them|those|their)\b/.test(q);
+let found=followUp&&previous?.ids?rows.filter(r=>previous.ids.includes(r.id)):[...rows],filters=followUp&&previous?.filters?[...previous.filters]:[],explicit=false;
 const dimensions=[["partner","partner"],["customer","customer"],["technology","technology"],["quarter","quarter"],["segment","segment"],["vendorAM","vendor owner"],["distiAM","distributor owner"]];
-for(const [key,label] of dimensions){const values=[...new Set(rows.map(r=>r[key]).filter(Boolean))].sort((a,b)=>String(b).length-String(a).length);const hit=values.find(v=>q.includes(norm(v)));if(hit){found=found.filter(r=>r[key]===hit);filters.push(`${label}: ${hit}`)}}
-if(/\bwon\b|won opportunities|won deals/.test(q)){found=found.filter(r=>r.stage==="Won");filters.push("Won")}
-else if(/\blost\b|loss|lost opportunities/.test(q)){found=found.filter(r=>r.stage==="Lost");filters.push("Lost")}
-else if(/closed|outcome/.test(q)){found=found.filter(r=>r.stage!=="Open");filters.push("closed")}
-else if(!/all|total portfolio|entire/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open")}
-const competitors=[...new Set(rows.flatMap(r=>String(r.competition||"").split(/[,;\/&+]+/)).map(x=>x.trim()).filter(x=>x&&!["None","Unknown"].includes(x)))];const comp=competitors.find(v=>q.includes(norm(v)));if(comp){found=found.filter(r=>String(r.competition||"").split(/[,;\/&+]+/).map(x=>x.trim()).includes(comp));filters.push(`competitor: ${comp}`)}
-if(/competition|competitor/.test(q)&&!comp){found=found.filter(r=>!["None","Unknown",""].includes(r.competition));filters.push("brand competition")}
-const value=found.reduce((n,r)=>n+Number(r.value||0),0),partners=new Set(found.map(r=>r.partner)).size,customers=new Set(found.map(r=>r.customer)).size;
-const wantsRows=/detail|list|which|names|show|opportunit/.test(q);
-const prefix=filters.length?`${filters.join(" · ")} — `:"";
-return{text:`${prefix}${found.length} opportunities found.`,metrics:[{label:"Opportunities",value:found.length},{label:"Pipeline",value:money(value)},{label:"Partners",value:partners},{label:"Customers",value:customers}],rows:wantsRows?found.slice(0,20):null}
+for(const [key,label] of dimensions){const values=[...new Set(rows.map(r=>r[key]).filter(Boolean))].sort((a,b)=>String(b).length-String(a).length);const hit=values.find(v=>q.includes(normText(v)));if(hit){found=found.filter(r=>r[key]===hit);filters.push(label+": "+hit);explicit=true}}
+const range=[...question.replace(/,/g,"").matchAll(/\$?\s*(\d+(?:\.\d+)?)\s*([km])?/gi)].map(m=>Number(m[1])*(m[2]?.toLowerCase()==="m"?1000000:m[2]?.toLowerCase()==="k"?1000:1)).filter(n=>n>=1000);
+if(range.length>=2){const lo=Math.min(range[0],range[1]),hi=Math.max(range[0],range[1]);found=found.filter(r=>r.value>=lo&&r.value<=hi);filters.push("value: "+money(lo)+"–"+money(hi));explicit=true}
+else if(range.length===1&&/\b(over|above|more than|greater)\b/.test(q)){found=found.filter(r=>r.value>range[0]);filters.push("value above "+money(range[0]));explicit=true}
+else if(range.length===1&&/\b(under|below|less than)\b/.test(q)){found=found.filter(r=>r.value<range[0]);filters.push("value below "+money(range[0]));explicit=true}
+if(/\bwon\b|wins|won deals/.test(q)){found=found.filter(r=>r.stage==="Won");filters.push("Won");explicit=true}
+else if(/\blost\b|losses|lost deals/.test(q)){found=found.filter(r=>r.stage==="Lost");filters.push("Lost");explicit=true}
+else if(/\bclosed\b|outcomes/.test(q)){found=found.filter(r=>r.stage!=="Open");filters.push("closed");explicit=true}
+else if(/\bactive\b|\bopen\b|pipeline/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open");explicit=true}
+const allCompetitors=[...new Set(rows.flatMap(r=>splitCompetition(r.competition)).filter(isRealCompetition))].sort((a,b)=>b.length-a.length);
+const comp=allCompetitors.find(v=>q.includes(normText(v)));
+if(comp){found=found.filter(r=>splitCompetition(r.competition).includes(comp));filters.push("brand competitor: "+comp);explicit=true}
+if(/\bbrand competition\b|\bvendor competition\b/.test(q)&&!comp){found=found.filter(r=>isRealCompetition(r.competition));filters.push("brand competition");explicit=true}
+if(/\bdistributor competition\b|\bdisti competition\b/.test(q)){found=found.filter(r=>isRealCompetition(r.distiCompetition));filters.push("distributor competition");explicit=true}
+if(!explicit&&!followUp&&!/\b(all|total|entire|portfolio|overall|won|lost|closed)\b/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open")}
+const total=found.reduce((n,r)=>n+Number(r.value||0),0),partners=new Set(found.map(r=>r.partner)).size,customers=new Set(found.map(r=>r.customer)).size;
+const active=found.filter(r=>r.stage==="Open"),won=found.filter(r=>r.stage==="Won"),lost=found.filter(r=>r.stage==="Lost");
+const details=/detail|list|which|show|names|opportunit/.test(q);
+const wantsRisk=/risk|health|hygiene|attention|critical|stale|problem/.test(q);
+const wantsActions=/action|recommend|today|should i do|next step|priorit/.test(q);
+const wantsDistribution=/breakdown|distribution|by partner|by owner|by am|concentration|coverage|divers|homogen|mix/.test(q);
+const wantsTech=/technology|technologies|product|products/.test(q);
+const wantsPartner=/partner|coverage|concentration|divers/.test(q);
+const scope=filters.length?filters.join(" · "):"complete synthetic portfolio";
+let text="";
+if(wantsRisk||wantsActions){
+const ranked=active.map(r=>({r,score:advisoryScore(r),signals:commercialSignals(r)})).sort((a,b)=>b.score-a.score||b.r.value-a.r.value);
+const critical=ranked.filter(x=>x.score>=55),watch=ranked.filter(x=>x.score>=30&&x.score<55),stale=active.filter(r=>r.days>7),brand=active.filter(r=>isRealCompetition(r.competition)),disti=active.filter(r=>isRealCompetition(r.distiCompetition));
+text="Commercial review for "+scope+":\n\n"+active.length+" active opportunities · "+money(active.reduce((n,r)=>n+r.value,0))+" pipeline. "+critical.length+" need immediate attention and "+watch.length+" should be watched.\n\nRisk evidence: "+stale.length+" have had no contact for more than 7 days; "+brand.length+" have confirmed brand competition; "+disti.length+" have distributor competition. The score also reads the opportunity notes for commercial signals—it is not based on value alone.";
+if(wantsActions){text+="\n\nRecommended actions:\n"+ranked.slice(0,5).map((x,i)=>{const reasons=[];if(x.r.days>7)reasons.push(x.r.days+" days since contact");if(isRealCompetition(x.r.competition))reasons.push("brand competitor "+x.r.competition);if(isRealCompetition(x.r.distiCompetition))reasons.push("distributor competitor "+x.r.distiCompetition);if(x.signals.negative.length)reasons.push("note signals: "+x.signals.negative.slice(0,2).join(", "));return(i+1)+". "+x.r.customer+" — "+(reasons.join("; ")||"protect momentum")+"; confirm next owner and dated milestone."}).join("\n")}
+found=ranked.map(x=>x.r);
+}else if(wantsDistribution||wantsTech||wantsPartner){
+const key=wantsTech?"technology":q.includes("vendor")?"vendorAM":q.includes("distributor owner")||q.includes("disti am")?"distiAM":"partner",groups=groupRows(found,key);
+text=found.length+" opportunities in "+scope+", representing "+money(total)+".\n\n"+groups.map(([name,x])=>"• "+name+": "+x.count+" opportunities · "+money(x.value)).join("\n");
+if(key==="partner"){
+const top5=groups.slice(0,5).reduce((n,[,x])=>n+x.value,0),share=total?Math.round(top5/total*100):0;
+text+="\n\nDistributor view: "+partners+" partners create "+(partners>=Math.max(3,Math.ceil(found.length/3))?"healthy market coverage":"a relatively concentrated route to market")+". The top five partners represent "+share+"% of value. Broad partner contribution is positive; concentration becomes a dependency risk when a small group dominates pipeline value.";
+}
+}else{
+text=found.length+" opportunities found in "+scope+". "+active.length+" are open, "+won.length+" won and "+lost.length+" lost, with "+money(total)+" total value.";
+if(found.length){text+=" The records span "+partners+" partners and "+customers+" customers."}
+}
+return{text,metrics:[{label:"Opportunities",value:found.length},{label:"Value",value:money(total)},{label:"Partners",value:partners},{label:"Customers",value:customers}],rows:(details||wantsActions||wantsRisk)?found.slice(0,20):null,context:{ids:found.map(r=>r.id),filters}}
 }
 const demoAssistantLauncher={position:"fixed",right:22,bottom:22,zIndex:900,border:0,borderRadius:999,background:"#0878b9",color:"#fff",fontWeight:800,padding:"12px 16px",boxShadow:"0 10px 30px rgba(8,120,185,.3)",cursor:"pointer"};
 const demoAssistantPanel={position:"fixed",right:0,top:0,bottom:0,zIndex:1000,width:"min(600px,100vw)",display:"flex",flexDirection:"column",background:"#f6f8fb",boxShadow:"-18px 0 55px rgba(15,23,42,.22)"};
