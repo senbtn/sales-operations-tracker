@@ -15,13 +15,16 @@ Sales Operations Tracker consolidates the operational context normally scattered
 
 The dashboard includes an English-language conversational assistant that analyzes the synthetic portfolio data directly in the browser. Reviewers can ask questions such as:
 
-- How many open opportunities does Maya own?
-- What is the Q2 pipeline?
-- List the opportunities competing with Fortinet.
-- Which partners have Won outcomes?
-- Show the details of the largest opportunities.
+- Analyze Maya's open pipeline and recommend today's priorities.
+- Which Q2 opportunities carry both brand and distributor competition?
+- How concentrated is pipeline value across the top five partners?
+- Break down the portfolio by technology, owner, or partner.
+- List the highest-risk opportunities and explain the evidence.
+- Show the details of those opportunities.
 
-The public assistant is read-only, uses fictional in-memory records, and does not connect to the private production database.
+The assistant keeps follow-up context, combines structured fields with commercial notes, and evaluates recency, value, quarter, brand competition, distributor competition, partner breadth, and Won/Lost outcomes. Its distributor perspective treats broad partner contribution as market coverage and flags dependency only when value is excessively concentrated.
+
+The public assistant is read-only, runs locally against fictional in-memory records, and does not connect to the private production database or an external AI service.
 
 ## Core capabilities
 
