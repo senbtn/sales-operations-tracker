@@ -67,28 +67,28 @@ return Math.min(100,(r.days>10?30:r.days>7?22:r.days>4?10:0)+(r.value>=400000?18
 const groupRows=(rows,key)=>Object.entries(rows.reduce((a,r)=>{const k=r[key]||"Not specified";a[k]=a[k]||{count:0,value:0};a[k].count++;a[k].value+=Number(r.value||0);return a},{})).sort((a,b)=>b[1].count-a[1].count||b[1].value-a[1].value);
 function answerDemoQuestion(question,rows,previous){
 const q=normText(question),followUp=/^(details|show details|list them|which ones|breakdown|what about these|and these|why|next actions|what should i do)/.test(q)||/\b(these|them|those|their)\b/.test(q);
-let found=followUp&&previous?.ids?rows.filter(r=>previous.ids.includes(r.id)):[...rows],filters=followUp&&previous?.filters?[...previous.filters]:[],explicit=false;
+let found=followUp&&previous?.ids?rows.filter(r=>previous.ids.includes(r.id)):[...rows],filters=followUp&&previous?.filters?[...previous.filters]:[],explicit=false,stageSpecified=false;
 const dimensions=[["partner","partner"],["customer","customer"],["technology","technology"],["quarter","quarter"],["segment","segment"],["vendorAM","vendor owner"],["distiAM","distributor owner"]];
 for(const [key,label] of dimensions){const values=[...new Set(rows.map(r=>r[key]).filter(Boolean))].sort((a,b)=>String(b).length-String(a).length);const hit=bestEntityHit(question,values);if(hit){found=found.filter(r=>r[key]===hit);filters.push(label+": "+hit);explicit=true}}
 const range=[...question.replace(/,/g,"").matchAll(/\$?\s*(\d+(?:\.\d+)?)\s*([km])?/gi)].map(m=>Number(m[1])*(m[2]?.toLowerCase()==="m"?1000000:m[2]?.toLowerCase()==="k"?1000:1)).filter(n=>n>=1000);
 if(range.length>=2){const lo=Math.min(range[0],range[1]),hi=Math.max(range[0],range[1]);found=found.filter(r=>r.value>=lo&&r.value<=hi);filters.push("value: "+money(lo)+"–"+money(hi));explicit=true}
 else if(range.length===1&&/\b(over|above|more than|greater)\b/.test(q)){found=found.filter(r=>r.value>range[0]);filters.push("value above "+money(range[0]));explicit=true}
 else if(range.length===1&&/\b(under|below|less than)\b/.test(q)){found=found.filter(r=>r.value<range[0]);filters.push("value below "+money(range[0]));explicit=true}
-if(/\bwon\b|wins|won deals/.test(q)){found=found.filter(r=>r.stage==="Won");filters.push("Won");explicit=true}
-else if(/\blost\b|losses|lost deals/.test(q)){found=found.filter(r=>r.stage==="Lost");filters.push("Lost");explicit=true}
-else if(/\bclosed\b|outcomes/.test(q)){found=found.filter(r=>r.stage!=="Open");filters.push("closed");explicit=true}
-else if(/\bactive\b|\bopen\b|pipeline/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open");explicit=true}
+if(/\bwon\b|wins|won deals/.test(q)){found=found.filter(r=>r.stage==="Won");filters.push("Won");explicit=true;stageSpecified=true}
+else if(/\blost\b|losses|lost deals/.test(q)){found=found.filter(r=>r.stage==="Lost");filters.push("Lost");explicit=true;stageSpecified=true}
+else if(/\bclosed\b|outcomes/.test(q)){found=found.filter(r=>r.stage!=="Open");filters.push("closed");explicit=true;stageSpecified=true}
+else if(/\bactive\b|\bopen\b|pipeline/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open");explicit=true;stageSpecified=true}
 const allCompetitors=[...new Set(rows.flatMap(r=>splitCompetition(r.competition)).filter(isRealCompetition))].sort((a,b)=>b.length-a.length);
 const comp=bestEntityHit(question,allCompetitors);
 if(comp){found=found.filter(r=>splitCompetition(r.competition).includes(comp));filters.push("brand competitor: "+comp);explicit=true}
 if(/\bbrand competition\b|\bvendor competition\b/.test(q)&&!comp){found=found.filter(r=>isRealCompetition(r.competition));filters.push("brand competition");explicit=true}
 if(/\bdistributor competition\b|\bdisti competition\b/.test(q)){found=found.filter(r=>isRealCompetition(r.distiCompetition));filters.push("distributor competition");explicit=true}
-if(!explicit&&!followUp&&!/\b(all|total|entire|portfolio|overall|won|lost|closed)\b/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open")}
+if(!stageSpecified&&!followUp&&!/\b(all|total|entire|portfolio|overall|won|lost|closed|outcomes)\b/.test(q)){found=found.filter(r=>r.stage==="Open");filters.push("open")}
 const total=found.reduce((n,r)=>n+Number(r.value||0),0),partners=new Set(found.map(r=>r.partner)).size,customers=new Set(found.map(r=>r.customer)).size;
 const active=found.filter(r=>r.stage==="Open"),won=found.filter(r=>r.stage==="Won"),lost=found.filter(r=>r.stage==="Lost");
 const details=/detail|list|which|show|names|opportunit/.test(q);
 const wantsRisk=/risk|health|hygiene|attention|critical|stale|problem/.test(q);
-const wantsActions=/action|recommend|today|should i do|next step|priorit/.test(q);
+const wantsActions=/action|recommend|today|should i do|next step|priorit|road map|roadmap|plan|guidance|advise/.test(q);
 const wantsDistribution=/breakdown|distribution|by partner|by owner|by am|concentration|coverage|divers|homogen|mix/.test(q);
 const wantsTech=/technology|technologies|product|products/.test(q);
 const wantsPartner=/partner|coverage|concentration|divers/.test(q);
